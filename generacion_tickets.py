@@ -85,15 +85,20 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 
-# --- FILTRO POR FECHA ---
-st.sidebar.markdown("📆 Filtrar por Rango de Fechas (inicio de actividad)")
-min_fecha = log['inicio_actividad'].min().date()
-max_fecha = log['inicio_actividad'].max().date()
+st.subheader("📊 Comparativo por Fases del Proceso")
 
-fecha_inicio, fecha_fin = st.sidebar.date_input("Selecciona rango de fechas:",
-    value=[min_fecha, max_fecha], min_value=min_fecha, max_value=max_fecha)
+# Reordenar columnas para gráfica
+df_fases = duracion[["id_ticket", "duracion_fase_horas", "duracion_qa_horas", "duracion_post_resolucion_horas"]]
 
-# Aplicar filtro
-log = log[(log['inicio_actividad'].dt.date >= fecha_inicio) & (log['inicio_actividad'].dt.date <= fecha_fin)]
+# Convertir a formato largo para gráfico apilado
+df_melt = df_fases.melt(id_vars="id_ticket", var_name="fase", value_name="horas")
+
+# Crear gráfico apilado
+fig_fases = px.bar(df_melt, x="id_ticket", y="horas", color="fase",
+                   title="Duraciones por Fases del Proceso (Barras Apiladas)",
+                   labels={"id_ticket": "Ticket", "horas": "Duración (hrs)", "fase": "Fase"},
+                   color_discrete_sequence=px.colors.qualitative.Set3)
+
+st.plotly_chart(fig_fases, use_container_width=True)
 
 
