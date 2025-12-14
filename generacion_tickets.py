@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
@@ -54,3 +55,28 @@ if ticket_sel != "Todos":
 # --- TABLA DE DURACIONES REALES ---
 st.subheader("⏳ Duraciones reales por Ticket")
 st.dataframe(duracion, use_container_width=True)
+
+
+# --- GRÁFICO DE BARRAS: Duración total del proceso por ticket ---
+
+
+st.subheader("📊 Duración Total del Proceso por Ticket")
+
+# Elegir cuántos tickets mostrar
+top_n_tickets = st.slider("Mostrar top N tickets con mayor duración", min_value=5, max_value=50, value=10)
+
+# Ordenar por duración descendente
+df_top_duracion = duracion.sort_values(by="duracion_proceso_horas", ascending=False).head(top_n_tickets)
+
+# Crear gráfico con Plotly
+fig = px.bar(
+    df_top_duracion,
+    x="id_ticket",
+    y="duracion_proceso_horas",
+    labels={"id_ticket": "Ticket", "duracion_proceso_horas": "Duración (horas)"},
+    title="Duración Total del Proceso por Ticket",
+    color="duracion_proceso_horas",
+    color_continuous_scale="Blues"
+)
+
+st.plotly_chart(fig, use_container_width=True)
