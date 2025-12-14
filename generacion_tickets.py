@@ -13,20 +13,17 @@ def cargar_datos():
 
 log, variantes = cargar_datos()
 
-# --- ENCABEZADO ---
+# --- CALCULAR DURACIÓN ---
+log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
+
+# --- KPIs ---
 st.title("📊 Análisis de Proceso de Tickets")
 st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
 
-# --- KPIs ---
 st.subheader("🔢 KPIs Generales")
 total_tickets = log['id_ticket'].nunique()
 total_actividades = log['actividad'].nunique()
-# Calcular duración por evento
-log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
-
-# Calcular duración total por ticket
 duracion_total = log.groupby('id_ticket')['duracion_horas'].sum().mean()
-
 
 col1, col2, col3 = st.columns(3)
 col1.metric("🎫 Tickets únicos", total_tickets)
@@ -44,9 +41,10 @@ top_variantes = variantes['secuencia_actividades'].value_counts().head(top_n).re
 top_variantes.columns = ['secuencia', 'cantidad']
 st.dataframe(top_variantes)
 
-# --- FILTROS (Extra) ---
+# --- FILTROS ---
 st.sidebar.header("🎛️ Filtros")
 ticket_sel = st.sidebar.selectbox("Ticket específico", ["Todos"] + list(log['id_ticket'].unique()))
+
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
-    st.dataframe(log[log['id_ticket'] == ticket_sel])
+    st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
