@@ -102,3 +102,17 @@ fig_fases = px.bar(df_melt, x="id_ticket", y="horas", color="fase",
 st.plotly_chart(fig_fases, use_container_width=True)
 
 
+
+st.subheader("🚨 Tickets con posibles Cuellos de Botella")
+
+# Cuello = si alguna fase dura más de 1500 horas
+umbral_fase = 1500
+
+cuellos = duracion[
+    (duracion['duracion_fase_horas'] > umbral_fase) |
+    (duracion['duracion_qa_horas'] > umbral_fase) |
+    (duracion['duracion_post_resolucion_horas'] > umbral_fase)
+]
+
+st.dataframe(cuellos, use_container_width=True)
+
