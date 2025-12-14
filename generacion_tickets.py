@@ -118,21 +118,38 @@ st.dataframe(cuellos, use_container_width=True)
 
 
 
+# --- GRÁFICO DE SEMÁFORO POR FASE DEL PROCESO ---
+st.subheader("🔦 Semáforo por Fase del Proceso")
 
-st.dataframe(cuellos, use_container_width=True)
+# Derretir datos para graficar fases por color
+df_melted = df_semaforo.melt(
+    id_vars="id_ticket",
+    value_vars=["fase_semaforo", "qa_semaforo", "post_semaforo"],
+    var_name="fase",
+    value_name="semaforo"
+)
 
+# Renombrar columnas para presentación
+df_melted["fase"] = df_melted["fase"].str.replace("_semaforo", "").str.upper()
 
-st.subheader("🚦 Tickets con Código de Color (Semáforo)")
+# Agrupar para contar
+df_agg = df_melted.groupby(["fase", "semaforo"]).size().reset_index(name="cantidad")
 
-def color_semáforo(valor):
-    if valor < 2000:
-        return 'background-color: #D4EDDA'  # verde claro
-    elif valor < 3500:
-        return 'background-color: #FFF3CD'  # amarillo
-    else:
-        return 'background-color: #F8D7DA'  # rojo claro
+# Graficar con Plotly
+fig = px.bar(
+    df_agg,
+    x="fase",
+    y="cantidad",
+    color="semaforo",
+    title="🔦 Semáforo por Fase del Proceso",
+    color_discrete_map={
+        "🟢 Bajo": "green",
+        "🟡 Medio": "orange",
+        "🔴 Alto": "red"
+    },
+    category_orders={"fase": ["FASE", "QA", "POST"]}
+)
 
-styled = duracion.style.applymap(color_semáforo, subset=['duracion_proceso_horas'])
-st.dataframe(styled, use_container_width=True)
-             
+st.plotly_chart(fig, use_container_width=True)
+
 
