@@ -114,5 +114,20 @@ cuellos = duracion[
     (duracion['duracion_post_resolucion_horas'] > umbral_fase)
 ]
 
-st.dataframe(cuellos, use_container_width=True)
+st.dataframe(cuellos, use_container_width=True
+
+
+st.subheader("🚦 Tickets con Código de Color (Semáforo)")
+
+def color_semáforo(valor):
+    if valor < 2000:
+        return 'background-color: #D4EDDA'  # verde claro
+    elif valor < 3500:
+        return 'background-color: #FFF3CD'  # amarillo
+    else:
+        return 'background-color: #F8D7DA'  # rojo claro
+
+styled = duracion.style.applymap(color_semáforo, subset=['duracion_proceso_horas'])
+st.dataframe(styled, use_container_width=True)
+             
 
