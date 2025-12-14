@@ -21,7 +21,12 @@ st.markdown("Visualización del flujo real de requerimientos según registros de
 st.subheader("🔢 KPIs Generales")
 total_tickets = log['id_ticket'].nunique()
 total_actividades = log['actividad'].nunique()
+# Calcular duración por evento
+log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
+
+# Calcular duración total por ticket
 duracion_total = log.groupby('id_ticket')['duracion_horas'].sum().mean()
+
 
 col1, col2, col3 = st.columns(3)
 col1.metric("🎫 Tickets únicos", total_tickets)
