@@ -82,3 +82,18 @@ fig = px.bar(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
+
+
+# --- FILTRO POR FECHA ---
+st.sidebar.markdown("📆 Filtrar por Rango de Fechas (inicio de actividad)")
+min_fecha = log['inicio_actividad'].min().date()
+max_fecha = log['inicio_actividad'].max().date()
+
+fecha_inicio, fecha_fin = st.sidebar.date_input("Selecciona rango de fechas:",
+    value=[min_fecha, max_fecha], min_value=min_fecha, max_value=max_fecha)
+
+# Aplicar filtro
+log = log[(log['inicio_actividad'].dt.date >= fecha_inicio) & (log['inicio_actividad'].dt.date <= fecha_fin)]
+
+
