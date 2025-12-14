@@ -6,7 +6,6 @@ import plotly.express as px
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
 
 # --- CARGA DE DATOS ---
-st.cache_data.clear()  # Forzar limpieza de caché
 @st.cache_data
 def cargar_datos():
     log = pd.read_csv("data/log_eventos_con_hora.csv", parse_dates=['inicio_actividad', 'fin_actividad'])
@@ -14,10 +13,9 @@ def cargar_datos():
     duracion = pd.read_csv("data/duracion_real_por_ticket.csv")
     return log, variantes, duracion
 
-
 log, variantes, duracion = cargar_datos()
 
-# --- CALCULAR DURACIÓN A PARTIR DE TIEMPOS (por si la necesitas) ---
+# --- CÁLCULO DURACIÓN HORAS ---
 log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
 
 # --- ENCABEZADO ---
@@ -49,7 +47,6 @@ st.dataframe(top_variantes)
 # --- FILTRO POR TICKET ---
 st.sidebar.header("🎛️ Filtros")
 ticket_sel = st.sidebar.selectbox("Ticket específico", ["Todos"] + list(log['id_ticket'].unique()))
-
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
     st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
@@ -58,19 +55,11 @@ if ticket_sel != "Todos":
 st.subheader("⏳ Duraciones reales por Ticket")
 st.dataframe(duracion, use_container_width=True)
 
-
 # --- GRÁFICO DE BARRAS: Duración total del proceso por ticket ---
-
-
 st.subheader("📊 Duración Total del Proceso por Ticket")
-
-# Elegir cuántos tickets mostrar
 top_n_tickets = st.slider("Mostrar top N tickets con mayor duración", min_value=5, max_value=50, value=10)
-
-# Ordenar por duración descendente
 df_top_duracion = duracion.sort_values(by="duracion_proceso_horas", ascending=False).head(top_n_tickets)
 
-# Crear gráfico con Plotly
 fig = px.bar(
     df_top_duracion,
     x="id_ticket",
@@ -80,48 +69,26 @@ fig = px.bar(
     color="duracion_proceso_horas",
     color_continuous_scale="Blues"
 )
-
 st.plotly_chart(fig, use_container_width=True)
 
-
-
-st.subheader("📊 Comparativo por Fases del Proceso")
-
-# Reordenar columnas para gráfica
-df_fases = duracion[["id_ticket", "duracion_fase_horas", "duracion_qa_horas", "duracion_post_resolucion_horas"]]
-
-# Convertir a formato largo para gráfico apilado
-df_melt = df_fases.melt(id_vars="id_ticket", var_name="fase", value_name="horas")
-
-# Crear gráfico apilado
-fig_fases = px.bar(df_melt, x="id_ticket", y="horas", color="fase",
-                   title="Duraciones por Fases del Proceso (Barras Apiladas)",
-                   labels={"id_ticket": "Ticket", "horas": "Duración (hrs)", "fase": "Fase"},
-                   color_discrete_sequence=px.colors.qualitative.Set3)
-
-st.plotly_chart(fig_fases, use_container_width=True)
-
-
-
-st.subheader("🚨 Tickets con posibles Cuellos de Botella")
-
-# Cuello = si alguna fase dura más de 1500 horas
-umbral_fase = 1500
-
-cuellos = duracion[
-    (duracion['duracion_fase_horas'] > umbral_fase) |
-    (duracion['duracion_qa_horas'] > umbral_fase) |
-    (duracion['duracion_post_resolucion_horas'] > umbral_fase)
-]
-
-st.dataframe(cuellos, use_container_width=True)
-
-
-
-# --- GRÁFICO DE SEMÁFORO POR FASE DEL PROCESO ---
+# --- SEMÁFORO POR FASE ---
 st.subheader("🔦 Semáforo por Fase del Proceso")
 
-# Derretir datos para graficar fases por color
+# Clasificación por colores
+def clasificar_semaforo(valor):
+    if valor <= 500:
+        return "🟢 Bajo"
+    elif valor <= 1500:
+        return "🟡 Medio"
+    else:
+        return "🔴 Alto"
+
+df_semaforo = duracion.copy()
+df_semaforo["fase_semaforo"] = df_semaforo["duracion_fase_horas"].apply(clasificar_semaforo)
+df_semaforo["qa_semaforo"] = df_semaforo["duracion_qa_horas"].apply(clasificar_semaforo)
+df_semaforo["post_semaforo"] = df_semaforo["duracion_post_resolucion_horas"].apply(clasificar_semaforo)
+
+# Reestructurar para mostrar en tabla
 df_melted = df_semaforo.melt(
     id_vars="id_ticket",
     value_vars=["fase_semaforo", "qa_semaforo", "post_semaforo"],
@@ -129,25 +96,5 @@ df_melted = df_semaforo.melt(
     value_name="semaforo"
 )
 
-# Renombrar columnas para presentación
-df_melted["fase"] = df_melted["fase"].str.replace("_semaforo", "").str.upper()
-
-# Agrupar para contar
-df_agg = df_melted.groupby(["fase", "semaforo"]).size().reset_index(name="cantidad")
-
-# Graficar con Plotly
-fig = px.bar(
-    df_agg,
-    x="fase",
-    y="cantidad",
-    color="semaforo",
-    title="🔦 Semáforo por Fase del Proceso",
-    color_discrete_map={
-        "🟢 Bajo": "green",
-        "🟡 Medio": "orange",
-        "🔴 Alto": "red"
-    },
-    category_orders={"fase": ["FASE", "QA", "POST"]}
-)
-
-st.plotly_chart(fig, use_container_width=True)
+# Mostrar tabla tipo semáforo
+st.dataframe(df_melted, use_container_width=True)
