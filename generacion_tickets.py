@@ -165,7 +165,7 @@ fig_sankey = go.Figure(data=[go.Sankey(
     link=dict(
         source=flujo["source"],
         target=flujo["target"],
-        value=flujo["cantidad"]
+        value=flujo["cantidad"],
         hovertemplate=hover_textos
     )
 )])
