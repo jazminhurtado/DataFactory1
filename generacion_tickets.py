@@ -28,6 +28,9 @@ def clasificar_ticket(duracion):
 
 duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
 
+# --- CÁLCULO DURACIÓN HORAS ---
+log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
+
 # --- ENCABEZADO ---
 st.title("📊 Análisis de Proceso de Tickets")
 st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
@@ -137,7 +140,10 @@ else:
 log_ordenado = log_filtrado.sort_values(by=["id_ticket", "inicio_actividad"])
 log_ordenado["actividad_siguiente"] = log_ordenado.groupby("id_ticket")["actividad"].shift(-1)
 pares = log_ordenado.dropna(subset=["actividad_siguiente"])
-flujo = pares.groupby(["actividad", "actividad_siguiente"]).size().reset_index(name="cantidad")
+flujo = pares.groupby(["actividad", "actividad_siguiente"]).agg(
+    cantidad=('id_ticket', 'count'),
+    duracion_promedio=('duracion_horas', 'mean')
+).reset_index()
 
 nodos = list(set(flujo["actividad"].tolist() + flujo["actividad_siguiente"].tolist()))
 etiquetas = nodos
@@ -148,9 +154,12 @@ flujo["target"] = flujo["actividad_siguiente"].map(indices)
 # Colores aleatorios por nodo
 colores_nodos = ['hsl({},70%,50%)'.format(random.randint(0, 360)) for _ in etiquetas]
 
-# Tooltips personalizados para cada flujo
-total_general = flujo["cantidad"].sum()
-hover_textos = flujo.apply(lambda row: f"{row['actividad']} → {row['actividad_siguiente']}<br>Cantidad: {row['cantidad']}<br>% del total: {round(100 * row['cantidad'] / total_general, 2)}%", axis=1)
+# Tooltips personalizados con duración y porcentaje
+flujo["porcentaje"] = (flujo["cantidad"] / flujo["cantidad"].sum()) * 100
+hover_textos = flujo.apply(
+    lambda row: f"{row['actividad']} → {row['actividad_siguiente']}<br>Cantidad: {row['cantidad']}<br>Duración prom.: {row['duracion_promedio']:.2f} h<br>Participación: {row['porcentaje']:.1f}%",
+    axis=1
+)
 
 fig_sankey = go.Figure(data=[go.Sankey(
     node=dict(
