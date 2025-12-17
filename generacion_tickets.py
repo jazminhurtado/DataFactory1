@@ -147,13 +147,16 @@ indices = {k: v for v, k in enumerate(nodos)}
 flujo["source"] = flujo["actividad"].map(indices)
 flujo["target"] = flujo["actividad_siguiente"].map(indices)
 
+# Colores aleatorios por nodo
+colores_nodos = ['hsl({},70%,50%)'.format(random.randint(0, 360)) for _ in etiquetas]
+
 fig_sankey = go.Figure(data=[go.Sankey(
     node=dict(
         pad=15,
         thickness=20,
         line=dict(color="black", width=0.5),
         label=etiquetas,
-        color="gray"
+        color= colores_nodos # Colores para nodos
     ),
     link=dict(
         source=flujo["source"],
