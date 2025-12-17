@@ -63,21 +63,6 @@ else:
 
 
 
-# --- GRÁFICO DE BARRAS: Duración total del proceso por ticket ---
-#st.subheader("📊 Duración Total del Proceso por Ticket")
-#top_n_tickets = st.slider("Mostrar top N tickets con mayor duración", min_value=5, max_value=50, value=10)
-#df_top_duracion = duracion.sort_values(by="duracion_proceso_horas", ascending=False).head(top_n_tickets)
-
-#fig = px.bar(
-    #df_top_duracion,
-    #x="id_ticket",
-    #y="duracion_proceso_horas",
-    #labels={"id_ticket": "Ticket", "duracion_proceso_horas": "Duración (horas)"},
-    #title="Duración Total del Proceso por Ticket",
-    #color="duracion_proceso_horas",
-    #color_continuous_scale="Blues"
-#)
-#st.plotly_chart(fig, use_container_width=True)
 
 # --- GRÁFICO DE BARRAS: Duración total del proceso por ticket ---
 st.subheader("📊 Duración Total del Proceso por Ticket")
@@ -108,30 +93,41 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 
-# --- SEMÁFORO POR FASE ---
-st.subheader("🔦 Semáforo por Fase del Proceso")
+# --- SEMÁFORO POR FASE DEL PROCESO ---
+st.subheader("🚦 Semáforo por Fase del Proceso")
 
-# Clasificación por colores
-def clasificar_semaforo(valor):
-    if valor <= 500:
-        return "🟢 Bajo"
-    elif valor <= 1500:
-        return "🟡 Medio"
-    else:
-        return "🔴 Alto"
+# Filtro por ticket
+if ticket_sel != "Todos":
+    df_semaforo_filtrado = duracion[duracion["id_ticket"] == ticket_sel]
+    titulo_semaforo = f"Duración por Fase - Ticket {ticket_sel}"
+else:
+    df_semaforo_filtrado = duracion.copy()
+    titulo_semaforo = "Duración por Fase del Proceso (Todos los Tickets)"
 
-df_semaforo = duracion.copy()
-df_semaforo["fase_semaforo"] = df_semaforo["duracion_fase_horas"].apply(clasificar_semaforo)
-df_semaforo["qa_semaforo"] = df_semaforo["duracion_qa_horas"].apply(clasificar_semaforo)
-df_semaforo["post_semaforo"] = df_semaforo["duracion_post_resolucion_horas"].apply(clasificar_semaforo)
-
-# Reestructurar para mostrar en tabla
-df_melted = df_semaforo.melt(
+# Derretir columnas para fase
+df_melted = df_semaforo_filtrado.melt(
     id_vars="id_ticket",
-    value_vars=["fase_semaforo", "qa_semaforo", "post_semaforo"],
+    value_vars=["duracion_fase_horas", "duracion_qa_horas", "duracion_post_resolucion_horas"],
     var_name="fase",
-    value_name="semaforo"
+    value_name="duracion"
 )
 
-# Mostrar tabla tipo semáforo
-st.dataframe(df_melted, use_container_width=True)
+# Agregar clasificación de semáforo
+df_melted["color"] = pd.cut(
+    df_melted["duracion"],
+    bins=[-1, 500, 2000, float("inf")],
+    labels=["🟢 Bajo", "🟡 Medio", "🔴 Alto"]
+)
+
+# Gráfico
+fig2 = px.bar(
+    df_melted,
+    x="fase",
+    y="duracion",
+    color="color",
+    barmode="group",
+    color_discrete_map={"🟢 Bajo": "green", "🟡 Medio": "orange", "🔴 Alto": "red"},
+    title=titulo_semaforo
+)
+st.plotly_chart(fig2, use_container_width=True)
+
