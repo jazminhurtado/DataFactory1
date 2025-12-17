@@ -2,13 +2,14 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import random  # ✅ Aseguramos que esté correctamente importado
+import random
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
 
 # --- CARGA DE DATOS ---
 @st.cache_data
+
 def cargar_datos():
     log = pd.read_csv("data/log_eventos_con_hora.csv", parse_dates=['inicio_actividad', 'fin_actividad'])
     variantes = pd.read_csv("data/variantes_proceso_con_hora.csv")
@@ -27,11 +28,6 @@ def clasificar_ticket(duracion):
         return "🔥 Crítico"
 
 duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
-
-# --- CÁLCULO DURACIÓN HORAS (solo si no existe en el CSV) ---
-if 'duracion_horas' not in log.columns:
-    log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
-
 
 # --- ENCABEZADO ---
 st.title("📊 Análisis de Proceso de Tickets")
@@ -60,7 +56,7 @@ top_variantes.columns = ['secuencia', 'cantidad']
 st.dataframe(top_variantes)
 
 # --- FILTRO POR TICKET ---
-st.sidebar.header("🎛️ Filtros")
+st.sidebar.header("🏧 Filtros")
 ticket_sel = st.sidebar.selectbox("Ticket específico", ["Todos"] + list(log['id_ticket'].unique()))
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
@@ -131,7 +127,7 @@ fig2 = px.bar(
 )
 st.plotly_chart(fig2, use_container_width=True)
 
-# --- GRAFICO SANKEY: Flujo Real de Actividades ---
+# --- GRÁFICO SANKEY: Flujo Real de Actividades ---
 st.subheader("🔄 Flujo Real de Actividades (Gráfico Sankey)")
 
 if ticket_sel != "Todos":
