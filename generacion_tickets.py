@@ -153,7 +153,14 @@ st.plotly_chart(fig2, use_container_width=True)
 st.subheader("🔄 Flujo Real de Actividades (Gráfico Sankey)")
 
 # Ordenar por ticket y hora para reconstruir el flujo real
-log_ordenado = log.sort_values(by=["id_ticket", "inicio_actividad"])
+#log_ordenado = log.sort_values(by=["id_ticket", "inicio_actividad"])
+if ticket_sel != "Todos":
+    log_filtrado = log[log["id_ticket"] == ticket_sel]
+else:
+    log_filtrado = log
+
+log_ordenado = log_filtrado.sort_values(by=["id_ticket", "inicio_actividad"])
+
 
 # Crear pares consecutivos de actividades
 log_ordenado["actividad_siguiente"] = log_ordenado.groupby("id_ticket")["actividad"].shift(-1)
