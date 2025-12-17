@@ -149,16 +149,29 @@ fig2 = px.bar(
 st.plotly_chart(fig2, use_container_width=True)
 
 
+# --- GRAFICO SANKEY: Flujo Real de Actividades ---
+st.subheader("🔄 Flujo Real de Actividades (Gráfico Sankey)")
 
-# Crear listas de nodos únicas
+# Ordenar por ticket y hora para reconstruir el flujo real
+log_ordenado = log.sort_values(by=["id_ticket", "inicio_actividad"])
+
+# Crear pares consecutivos de actividades
+log_ordenado["actividad_siguiente"] = log_ordenado.groupby("id_ticket")["actividad"].shift(-1)
+pares = log_ordenado.dropna(subset=["actividad_siguiente"])
+
+# Contar combinaciones únicas (de → hacia)
+flujo = pares.groupby(["actividad", "actividad_siguiente"]).size().reset_index(name="cantidad")
+
+# Crear nodos únicos e índices
 nodos = list(set(flujo["actividad"].tolist() + flujo["actividad_siguiente"].tolist()))
 indices = {k: v for v, k in enumerate(nodos)}
 
-# Mapeo de source/target
+# Mapear a source y target
 flujo["source"] = flujo["actividad"].map(indices)
 flujo["target"] = flujo["actividad_siguiente"].map(indices)
 
-# Crear Sankey
+# Construir gráfico Sankey
+import plotly.graph_objects as go
 fig_sankey = go.Figure(data=[go.Sankey(
     node=dict(
         pad=15,
@@ -172,5 +185,6 @@ fig_sankey = go.Figure(data=[go.Sankey(
         value=flujo["cantidad"]
     ))])
 
-fig_sankey.update_layout(title_text="🔄 Flujo Real de Actividades (Sankey)", font_size=10)
+#fig_sankey.update_layout(title_text="🔄 Flujo Real de Actividades (Sankey)", font_size=10)
 st.plotly_chart(fig_sankey, use_container_width=True)
+
