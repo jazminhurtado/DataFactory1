@@ -11,6 +11,13 @@ st.set_page_config(page_title="Minería de Procesos", layout="wide")
 @st.cache_data
 def cargar_datos():
     log = pd.read_csv("data/log_eventos_con_hora.csv", parse_dates=['inicio_actividad', 'fin_actividad'])
+    # Asegúrate de convertir las fechas a datetime
+    df['inicio_actividad'] = pd.to_datetime(df['inicio_actividad'])
+    df['fin_actividad'] = pd.to_datetime(df['fin_actividad'])
+# Calcular la duración en horas (rounded)
+    df['duracion_horas'] = (df['fin_actividad'] - df['inicio_actividad']).dt.total_seconds() / 3600
+    df['duracion_horas'] = df['duracion_horas'].round(2)
+
     variantes = pd.read_csv("data/variantes_proceso_con_hora.csv")
     duracion = pd.read_csv("data/duracion_real_por_ticket.csv")
     return log, variantes, duracion
