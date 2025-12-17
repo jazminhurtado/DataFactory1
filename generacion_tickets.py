@@ -28,8 +28,10 @@ def clasificar_ticket(duracion):
 
 duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
 
-# --- CÁLCULO DURACIÓN HORAS ---
-log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
+# --- CÁLCULO DURACIÓN HORAS (solo si no existe en el CSV) ---
+if 'duracion_horas' not in log.columns:
+    log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
+
 
 # --- ENCABEZADO ---
 st.title("📊 Análisis de Proceso de Tickets")
