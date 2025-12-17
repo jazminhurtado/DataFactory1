@@ -195,3 +195,27 @@ fig_sankey = go.Figure(data=[go.Sankey(
 #fig_sankey.update_layout(title_text="🔄 Flujo Real de Actividades (Sankey)", font_size=10)
 st.plotly_chart(fig_sankey, use_container_width=True)
 
+fig_sankey = go.Figure(data=[go.Sankey(
+    node=dict(
+        pad=15,
+        thickness=20,
+        line=dict(color="black", width=0.5),
+        label=etiquetas,
+        color=colores
+    ),
+    link=dict(
+        source=source,
+        target=target,
+        value=value
+    )
+)])
+
+# 👇 Aquí cambias la fuente y tamaño de letra
+fig_sankey.update_layout(
+    title_text="🔀 Flujo Real de Actividades por Ticket (Sankey)",
+    font=dict(
+        family="Arial",  # Fuente legible
+        size=16,         # Tamaño más grande
+        color="black"    # Color oscuro para más contraste
+    )
+)
