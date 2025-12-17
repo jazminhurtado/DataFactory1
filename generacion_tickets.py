@@ -52,8 +52,18 @@ if ticket_sel != "Todos":
     st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
 
 # --- TABLA DE DURACIONES REALES ---
+#st.subheader("⏳ Duraciones reales por Ticket")
+#st.dataframe(duracion, use_container_width=True)
+# --- TABLA DE DURACIONES REALES ---
 st.subheader("⏳ Duraciones reales por Ticket")
-st.dataframe(duracion, use_container_width=True)
+
+if ticket_sel != "Todos":
+    duracion_filtrada = duracion[duracion['id_ticket'] == ticket_sel]
+    st.dataframe(duracion_filtrada, use_container_width=True)
+else:
+    st.dataframe(duracion, use_container_width=True)
+
+
 
 # --- GRÁFICO DE BARRAS: Duración total del proceso por ticket ---
 st.subheader("📊 Duración Total del Proceso por Ticket")
