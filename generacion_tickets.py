@@ -148,6 +148,24 @@ fig2 = px.bar(
 )
 st.plotly_chart(fig2, use_container_width=True)
 
+# Crear lista de etiquetas para los nodos del Sankey
+etiquetas = nodos  # 'nodos' ya fue generado antes como lista única de actividades
+
+# Gráfico Sankey
+fig_sankey = go.Figure(data=[go.Sankey(
+    node=dict(
+        pad=15,
+        thickness=20,
+        line=dict(color="black", width=0.5),
+        label=etiquetas,  # Aquí usas la lista correctamente definida
+        color="gray"
+    ),
+    link=dict(
+        source=flujo["source"],
+        target=flujo["target"],
+        value=flujo["cantidad"]
+    )
+)])
 
 # --- GRAFICO SANKEY: Flujo Real de Actividades ---
 st.subheader("🔄 Flujo Real de Actividades (Gráfico Sankey)")
