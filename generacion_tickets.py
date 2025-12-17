@@ -157,12 +157,7 @@ fig_sankey = go.Figure(data=[go.Sankey(
         thickness=20,
         line=dict(color="black", width=0.5),
         label=etiquetas,
-        color=colores_nodos,
-        font=dict(
-            family="Arial",
-            size=14,
-            color="black"
-        )
+        color=colores_nodos
     ),
     link=dict(
         source=flujo["source"],
