@@ -2,14 +2,13 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import random
+import random  # ✅ Aseguramos que esté correctamente importado
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
 
 # --- CARGA DE DATOS ---
 @st.cache_data
-
 def cargar_datos():
     log = pd.read_csv("data/log_eventos_con_hora.csv", parse_dates=['inicio_actividad', 'fin_actividad'])
     variantes = pd.read_csv("data/variantes_proceso_con_hora.csv")
@@ -29,6 +28,14 @@ def clasificar_ticket(duracion):
 
 duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
 
+# --- CÁLCULO DURACIÓN HORAS (solo si no existe en el CSV) ---
+if 'duracion_horas' not in log.columns:
+    log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
+
+# Redondear columnas de duración
+log['duracion_horas'] = log['duracion_horas'].round(2)
+duracion["duracion_proceso_horas"] = duracion["duracion_proceso_horas"].round(2)
+
 # --- ENCABEZADO ---
 st.title("📊 Análisis de Proceso de Tickets")
 st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
@@ -42,46 +49,45 @@ prom_duracion_real = duracion["duracion_proceso_horas"].mean()
 col1, col2, col3 = st.columns(3)
 col1.metric("🎫 Tickets únicos", total_tickets)
 col2.metric("⚙️ Actividades distintas", total_actividades)
-col3.metric("⏱️ Promedio duración total (horas)", int(round(prom_duracion_real, 0)))
-
+col3.metric("⏱️ Promedio duración total (horas)", round(prom_duracion_real, 2))
 
 # --- TABLA PRINCIPAL ---
 st.subheader("📋 Log de Eventos por Actividad")
 st.dataframe(log, use_container_width=True)
+
+# --- FILTRO POR TICKET ---
+st.sidebar.header("🎛️ Filtros")
+ticket_sel = st.sidebar.selectbox("Ticket específico", ["Todos"] + list(log['id_ticket'].unique()))
 
 # --- VARIANTES DE PROCESO ---
 st.subheader("🔁 Variantes del Proceso")
 top_n = st.slider("Mostrar top N variantes", min_value=1, max_value=20, value=5)
 top_variantes = variantes['secuencia_actividades'].value_counts().head(top_n).reset_index()
 top_variantes.columns = ['secuencia', 'cantidad']
-st.dataframe(top_variantes)
 
-# --- FILTRO POR TICKET ---
-st.sidebar.header("🏧 Filtros")
-ticket_sel = st.sidebar.selectbox("Ticket específico", ["Todos"] + list(log['id_ticket'].unique()))
+# Identificar si el ticket seleccionado corresponde a alguna variante
 if ticket_sel != "Todos":
-    st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
-    st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
-
-    # --- Mostrar la variante específica del ticket seleccionado ---
-    st.markdown("### 🧭 Variante seguida por el Ticket seleccionado")
-
-    # Obtener secuencia ordenada de actividades
     secuencia_ticket = (
         log[log["id_ticket"] == ticket_sel]
         .sort_values(by="inicio_actividad")["actividad"]
         .tolist()
     )
-
     secuencia_str = " ➔ ".join(secuencia_ticket)
+    top_variantes["es_ticket"] = top_variantes["secuencia"].apply(
+        lambda x: "🎯 Ticket seleccionado" if x == secuencia_str else ""
+    )
+else:
+    top_variantes["es_ticket"] = ""
 
-    st.info(f"🔹 **Ticket `{ticket_sel}`** siguió esta secuencia de actividades:")
-    st.write(secuencia_str)
+st.dataframe(top_variantes, use_container_width=True)
 
+if ticket_sel != "Todos" and secuencia_str not in top_variantes["secuencia"].values:
+    st.warning("⚠️ La secuencia de este ticket no está entre las top N variantes mostradas.")
 
-
-
-
+# --- EVENTOS DEL TICKET SELECCIONADO ---
+if ticket_sel != "Todos":
+    st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
+    st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
 
 # --- TABLA DE DURACIONES REALES ---
 st.subheader("⏳ Duraciones reales por Ticket")
@@ -148,7 +154,7 @@ fig2 = px.bar(
 )
 st.plotly_chart(fig2, use_container_width=True)
 
-# --- GRÁFICO SANKEY: Flujo Real de Actividades ---
+# --- GRAFICO SANKEY: Flujo Real de Actividades ---
 st.subheader("🔄 Flujo Real de Actividades (Gráfico Sankey)")
 
 if ticket_sel != "Todos":
