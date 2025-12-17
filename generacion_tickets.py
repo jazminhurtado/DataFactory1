@@ -1,163 +1,77 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-import random
 
-# --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Minería de Procesos", layout="wide")
-
-# --- CARGA DE DATOS ---
+# Cargar datos
 @st.cache_data
 def cargar_datos():
-    log = pd.read_csv("data/log_eventos_con_hora.csv", parse_dates=['inicio_actividad', 'fin_actividad'])
-    variantes = pd.read_csv("data/variantes_proceso_con_hora.csv")
-    duracion = pd.read_csv("data/duracion_real_por_ticket.csv")
-    return log, variantes, duracion
+    eventos = pd.read_csv('log_eventos_con_hora.csv', parse_dates=['inicio_actividad', 'fin_actividad'])
+    eventos['duracion_horas'] = ((eventos['fin_actividad'] - eventos['inicio_actividad']).dt.total_seconds() / 3600).fillna(0).round(2)
+    variantes = pd.read_csv('variantes_proceso_con_hora.csv')
+    variantes.columns = variantes.columns.str.lower()
+    if 'tickets' in variantes.columns:
+        variantes['tickets'] = variantes['tickets'].fillna('')
+    return eventos, variantes
 
-log, variantes, duracion = cargar_datos()
+# Cargar los datos
+log_eventos, variantes = cargar_datos()
 
-# --- ASEGURAMOS COLUMNAS ESPERADAS ---
-if 'tickets' not in variantes.columns:
-    variantes['tickets'] = ''
+# Sidebar
+st.sidebar.header("🏦 Filtros")
+ticket_id = st.sidebar.selectbox("Ticket específico", options=["Todos"] + sorted(log_eventos['id_ticket'].unique().tolist()))
 
-# --- CÁLCULO DE DURACIÓN HORAS SI NO EXISTE ---
-if 'duracion_horas' not in log.columns:
-    log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
-    log['duracion_horas'] = log['duracion_horas'].round(2)
-
-# --- CLASIFICACIÓN NIVEL ALERTA ---
-def clasificar_ticket(d):
-    if d <= 1500:
-        return "✅ OK"
-    elif d <= 3000:
-        return "⚠️ Medio"
-    else:
-        return "🔥 Crítico"
-
-duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
-
-# --- ENCABEZADO ---
-st.title("📊 Análisis de Proceso de Tickets")
-st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
-
-# --- KPIs ---
-st.subheader("🔢 KPIs Generales")
+# KPIs Generales
+st.markdown("## 🔹 KPIs Generales")
+total_tickets = log_eventos['id_ticket'].nunique()
+total_actividades = log_eventos['actividad'].nunique()
+promedio_duracion = log_eventos.groupby('id_ticket')['duracion_horas'].sum().mean().round(2)
 col1, col2, col3 = st.columns(3)
-col1.metric("🎫 Tickets únicos", log['id_ticket'].nunique())
-col2.metric("⚙️ Actividades distintas", log['actividad'].nunique())
-col3.metric("⏱️ Promedio duración total (horas)", round(duracion["duracion_proceso_horas"].mean()))
+col1.metric("📅 Tickets únicos", total_tickets)
+col2.metric("🌈 Actividades distintas", total_actividades)
+col3.metric("⏱️ Promedio duración total (horas)", promedio_duracion)
 
-# --- FILTRO DE TICKETS ---
-st.sidebar.header("🎛️ Filtros")
-ticket_sel = st.sidebar.selectbox("Ticket específico", ["Todos"] + sorted(log['id_ticket'].unique()))
-
-# --- TABLA LOG ---
-st.subheader("📋 Log de Eventos por Actividad")
-if ticket_sel != "Todos":
-    st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
+# Log de Eventos
+st.markdown("## 📄 Log de Eventos por Actividad")
+if ticket_id != "Todos":
+    df_log = log_eventos[log_eventos['id_ticket'] == ticket_id]
 else:
-    st.dataframe(log, use_container_width=True)
+    df_log = log_eventos
+st.dataframe(df_log.sort_values(by=['id_ticket', 'inicio_actividad']), use_container_width=True)
 
-# --- VARIANTES DE PROCESO ---
-st.subheader("📆 Variantes del Proceso")
+# Variantes del Proceso
+st.markdown("## 🔹 Variantes del Proceso")
 top_n = st.slider("Mostrar top N variantes", 1, 20, 5)
 
-# Generamos secuencia de actividades por ticket
-ticket_secuencias = log.sort_values(by=['id_ticket', 'inicio_actividad']).groupby('id_ticket')['actividad'].apply(lambda x: ' ➔ '.join(x)).reset_index()
-ticket_secuencias.columns = ['id_ticket', 'secuencia']
+# Si el ticket está seleccionado, identificar su secuencia
+ticket_secuencia = ""
+ticket_en_top = False
+if ticket_id != "Todos":
+    secuencia_ticket = log_eventos[log_eventos['id_ticket'] == ticket_id].sort_values('inicio_actividad')['actividad'].tolist()
+    ticket_secuencia = " ➔ ".join(secuencia_ticket)
+    if 'secuencia' in variantes.columns:
+        variantes['es_ticket'] = variantes['secuencia'].apply(lambda x: 1 if x == ticket_secuencia else 0)
+        ticket_en_top = ticket_secuencia in variantes['secuencia'].head(top_n).values
 
-# Conteo de variantes
-conteo = ticket_secuencias['secuencia'].value_counts().reset_index()
-conteo.columns = ['secuencia', 'cantidad']
+# Mostrar tabla de variantes
+columnas_mostrar = ['secuencia', 'cantidad']
+if 'tickets' in variantes.columns:
+    columnas_mostrar.append('tickets')
+if 'es_ticket' in variantes.columns:
+    columnas_mostrar.append('es_ticket')
 
-# Mapeamos secuencia con sus tickets
-conteo['tickets'] = conteo['secuencia'].apply(lambda s: ', '.join(ticket_secuencias[ticket_secuencias['secuencia'] == s]['id_ticket'].values))
-conteo['es_ticket'] = conteo['tickets'].apply(lambda t: 1 if ticket_sel in t else 0 if ticket_sel != "Todos" else '')
-
-# Alerta si no está el ticket
-if ticket_sel != "Todos" and ticket_sel not in conteo['tickets'].str.split(', ').sum():
+st.dataframe(variantes.head(top_n)[columnas_mostrar], use_container_width=True)
+if ticket_id != "Todos" and not ticket_en_top:
     st.warning("⚠️ La secuencia de este ticket no está entre las top N variantes mostradas.")
 
-# Mostrar solo top N
-st.dataframe(conteo.head(top_n), use_container_width=True)
+# Duración por ticket
+st.markdown("## ⏳ Duraciones reales por Ticket")
+df_duracion = log_eventos.groupby('id_ticket')['duracion_horas'].sum().reset_index()
+df_duracion.columns = ['id_ticket', 'duracion_total_horas']
+st.dataframe(df_duracion.sort_values(by='duracion_total_horas', ascending=False), use_container_width=True)
 
-# --- DURACIONES REALES POR TICKET ---
-st.subheader("⏳ Duraciones reales por Ticket")
-if ticket_sel != "Todos":
-    st.dataframe(duracion[duracion['id_ticket'] == ticket_sel], use_container_width=True)
-else:
-    st.dataframe(duracion, use_container_width=True)
-
-# --- BARRAS DE DURACIÓN ---
-st.subheader("📊 Duración Total del Proceso por Ticket")
-if ticket_sel != "Todos":
-    df_duracion = duracion[duracion['id_ticket'] == ticket_sel]
-else:
-    top_n_tickets = st.slider("Top N tickets con mayor duración", 5, 50, 10)
-    df_duracion = duracion.sort_values(by="duracion_proceso_horas", ascending=False).head(top_n_tickets)
-
-fig = px.bar(
-    df_duracion,
-    x="id_ticket", y="duracion_proceso_horas",
-    color="duracion_proceso_horas",
-    title="Duración Total del Proceso",
-    labels={"id_ticket": "Ticket", "duracion_proceso_horas": "Horas"},
-    color_continuous_scale="Blues"
-)
+# Gráfico de barras
+fig = px.bar(df_duracion.sort_values(by='duracion_total_horas', ascending=False).head(10),
+             x='id_ticket', y='duracion_total_horas',
+             title='Top 10 Tickets por duración total (horas)',
+             labels={'duracion_total_horas': 'Duración (h)', 'id_ticket': 'Ticket'})
 st.plotly_chart(fig, use_container_width=True)
-
-# --- SEMÁFORO POR FASE ---
-st.subheader("🚦 Semáforo por Fase del Proceso")
-df_fase = duracion if ticket_sel == "Todos" else duracion[duracion['id_ticket'] == ticket_sel]
-df_melt = df_fase.melt(id_vars='id_ticket',
-                       value_vars=['duracion_fase_horas','duracion_qa_horas','duracion_post_resolucion_horas'],
-                       var_name='fase', value_name='duracion')
-
-# Colores por rango
-bins = [-1, 500, 2000, float('inf')]
-labels = ['🟢 Bajo', '🟡 Medio', '🔴 Alto']
-df_melt['color'] = pd.cut(df_melt['duracion'], bins=bins, labels=labels)
-
-fig2 = px.bar(df_melt, x='fase', y='duracion', color='color',
-              color_discrete_map={'🟢 Bajo':'green','🟡 Medio':'orange','🔴 Alto':'red'},
-              title="Duración por Fase")
-st.plotly_chart(fig2, use_container_width=True)
-
-# --- GRAFICO SANKEY ---
-st.subheader("🔄 Flujo Real de Actividades (Sankey)")
-log_sankey = log if ticket_sel == "Todos" else log[log['id_ticket'] == ticket_sel]
-log_sankey = log_sankey.sort_values(by=['id_ticket','inicio_actividad'])
-log_sankey['actividad_siguiente'] = log_sankey.groupby('id_ticket')['actividad'].shift(-1)
-transiciones = log_sankey.dropna(subset=['actividad_siguiente'])
-
-flujo = transiciones.groupby(['actividad','actividad_siguiente']).agg(
-    cantidad=('id_ticket','count'),
-    duracion_promedio=('duracion_horas','mean')
-).reset_index()
-
-nodos = list(set(flujo['actividad'].tolist() + flujo['actividad_siguiente'].tolist()))
-indice = {k: i for i, k in enumerate(nodos)}
-flujo['source'] = flujo['actividad'].map(indice)
-flujo['target'] = flujo['actividad_siguiente'].map(indice)
-flujo['porcentaje'] = (flujo['cantidad'] / flujo['cantidad'].sum()) * 100
-
-hover = flujo.apply(lambda row: f"{row['actividad']} → {row['actividad_siguiente']}<br>Cantidad: {row['cantidad']}<br>Duración prom.: {row['duracion_promedio']:.2f} h<br>Participación: {row['porcentaje']:.1f}%", axis=1)
-
-fig_sankey = go.Figure(data=[go.Sankey(
-    node=dict(
-        pad=15,
-        thickness=20,
-        line=dict(color="black", width=0.5),
-        label=nodos,
-        color=['hsl({},70%,50%)'.format(random.randint(0,360)) for _ in nodos]
-    ),
-    link=dict(
-        source=flujo['source'],
-        target=flujo['target'],
-        value=flujo['cantidad'],
-        hovertemplate=hover
-    )
-)])
-
-st.plotly_chart(fig_sankey, use_container_width=True)
