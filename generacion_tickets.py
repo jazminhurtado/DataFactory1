@@ -10,7 +10,7 @@ st.set_page_config(page_title="Minería de Procesos", layout="wide")
 # --- CARGA DE DATOS ---
 @st.cache_data
 def cargar_datos():
-    log = pd.read_csv("data/log_eventos_con_hora_con_duracion_variable_final.csv", parse_dates=['inicio_actividad', 'fin_actividad'])
+    log = pd.read_csv("data/log_eventos_con_hora.csv", parse_dates=['inicio_actividad', 'fin_actividad'])
     variantes = pd.read_csv("data/variantes_proceso_con_hora.csv")
     duracion = pd.read_csv("data/duracion_real_por_ticket.csv")
     return log, variantes, duracion
