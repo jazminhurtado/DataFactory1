@@ -129,6 +129,8 @@ fig2 = px.bar(
 )
 st.plotly_chart(fig2, use_container_width=True)
 
+
+
 # --- GRAFICO SANKEY: Flujo Real de Actividades ---
 st.subheader("🔄 Flujo Real de Actividades (Gráfico Sankey)")
 
@@ -151,8 +153,16 @@ flujo["target"] = flujo["actividad_siguiente"].map(indices)
 # Colores aleatorios por nodo
 colores_nodos = ['hsl({},70%,50%)'.format(random.randint(0, 360)) for _ in etiquetas]
 
-# Tooltips personalizados para cada flujo
-hover_textos = flujo.apply(lambda row: f"{row['actividad']} → {row['actividad_siguiente']}<br>Cantidad: {row['cantidad']}", axis=1)
+# Calcular porcentaje de cada flujo
+flujo["porcentaje"] = flujo["cantidad"] / flujo["cantidad"].sum() * 100
+
+# Tooltips personalizados
+hover_textos = flujo.apply(
+    lambda row: f"{row['actividad']} → {row['actividad_siguiente']}<br>"
+                f"Cantidad: {row['cantidad']}<br>"
+                f"Porcentaje: {row['porcentaje']:.2f}%",
+    axis=1
+)
 
 fig_sankey = go.Figure(data=[go.Sankey(
     node=dict(
@@ -166,7 +176,9 @@ fig_sankey = go.Figure(data=[go.Sankey(
         source=flujo["source"],
         target=flujo["target"],
         value=flujo["cantidad"],
-        hovertemplate=hover_textos
+        customdata=hover_textos,
+        hovertemplate="%{customdata}<extra></extra>"
     )
 )])
 st.plotly_chart(fig_sankey, use_container_width=True)
+
