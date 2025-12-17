@@ -63,6 +63,26 @@ if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
     st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
 
+    # --- Mostrar la variante específica del ticket seleccionado ---
+    st.markdown("### 🧭 Variante seguida por el Ticket seleccionado")
+
+    # Obtener secuencia ordenada de actividades
+    secuencia_ticket = (
+        log[log["id_ticket"] == ticket_sel]
+        .sort_values(by="inicio_actividad")["actividad"]
+        .tolist()
+    )
+
+    secuencia_str = " ➔ ".join(secuencia_ticket)
+
+    st.info(f"🔹 **Ticket `{ticket_sel}`** siguió esta secuencia de actividades:")
+    st.write(secuencia_str)
+
+
+
+
+
+
 # --- TABLA DE DURACIONES REALES ---
 st.subheader("⏳ Duraciones reales por Ticket")
 
