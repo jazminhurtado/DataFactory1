@@ -15,6 +15,22 @@ def cargar_datos():
 
 log, variantes, duracion = cargar_datos()
 
+# --- PASO 1: Clasificar tickets por nivel de alerta ---
+def clasificar_ticket(duracion):
+    if duracion <= 1500:
+        return "✅ OK"
+    elif duracion <= 3000:
+        return "⚠️ Medio"
+    else:
+        return "🔥 Crítico"
+
+duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
+
+
+
+
+
+
 # --- CÁLCULO DURACIÓN HORAS ---
 log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
 
