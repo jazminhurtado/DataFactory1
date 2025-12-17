@@ -46,6 +46,9 @@ col1.metric("🎫 Tickets únicos", total_tickets)
 col2.metric("⚙️ Actividades distintas", total_actividades)
 col3.metric("⏱️ Promedio duración total (horas)", round(prom_duracion_real, 2))
 
+# Mostrar equivalente en días y meses
+col3.markdown(f"👉 Equivale a **{prom_dias:.1f} días** (~{prom_meses:.1f} meses)")
+
 # --- TABLA PRINCIPAL ---
 st.subheader("📋 Log de Eventos por Actividad")
 st.dataframe(log, use_container_width=True)
