@@ -29,7 +29,11 @@ def clasificar_ticket(duracion):
 duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
 
 # --- CÁLCULO DURACIÓN HORAS (solo si no existe en el CSV) ---
-log['duracion_horas'] = pd.to_numeric(log['duracion_horas'], errors='coerce').round(2)
+# --- CÁLCULO DURACIÓN HORAS ---
+# Solo recalcular si hay valores nulos o ceros
+if 'duracion_horas' not in log.columns or log['duracion_horas'].isnull().all() or (log['duracion_horas'] == 0).all():
+    log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
+
 
 # Redondear columnas de duración
 log['duracion_horas'] = log['duracion_horas'].round(2)
