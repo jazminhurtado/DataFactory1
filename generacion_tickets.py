@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import random  # ✅ Aseguramos que esté correctamente importado
+import random  
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
@@ -151,6 +151,9 @@ flujo["target"] = flujo["actividad_siguiente"].map(indices)
 # Colores aleatorios por nodo
 colores_nodos = ['hsl({},70%,50%)'.format(random.randint(0, 360)) for _ in etiquetas]
 
+# Tooltips personalizados para cada flujo
+hover_textos = flujo.apply(lambda row: f"{row['actividad']} → {row['actividad_siguiente']}<br>Cantidad: {row['cantidad']}", axis=1)
+
 fig_sankey = go.Figure(data=[go.Sankey(
     node=dict(
         pad=15,
@@ -163,6 +166,7 @@ fig_sankey = go.Figure(data=[go.Sankey(
         source=flujo["source"],
         target=flujo["target"],
         value=flujo["cantidad"]
+        hovertemplate=hover_textos
     )
 )])
 st.plotly_chart(fig_sankey, use_container_width=True)
