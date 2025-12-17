@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import plotly.graph_objects as go
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
@@ -28,11 +27,6 @@ def clasificar_ticket(duracion):
 
 duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
 
-
-
-
-
-
 # --- CÁLCULO DURACIÓN HORAS ---
 log['duracion_horas'] = (log['fin_actividad'] - log['inicio_actividad']).dt.total_seconds() / 3600
 
@@ -41,7 +35,7 @@ st.title("📊 Análisis de Proceso de Tickets")
 st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
 
 # --- KPIs GENERALES ---
-st.subheader("🔢 KPIs Generales")
+st.subheader("📏 KPIs Generales")
 total_tickets = log['id_ticket'].nunique()
 total_actividades = log['actividad'].nunique()
 prom_duracion_real = duracion["duracion_proceso_horas"].mean()
@@ -63,12 +57,11 @@ top_variantes.columns = ['secuencia', 'cantidad']
 st.dataframe(top_variantes)
 
 # --- FILTRO POR TICKET ---
-st.sidebar.header("🎛️ Filtros")
+st.sidebar.header("🎧 Filtros")
 ticket_sel = st.sidebar.selectbox("Ticket específico", ["Todos"] + list(log['id_ticket'].unique()))
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
     st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
-
 
 # --- TABLA DE DURACIONES REALES ---
 st.subheader("⏳ Duraciones reales por Ticket")
@@ -79,9 +72,6 @@ if ticket_sel != "Todos":
 else:
     st.dataframe(duracion, use_container_width=True)
 
-
-
-
 # --- GRÁFICO DE BARRAS: Duración total del proceso por ticket ---
 st.subheader("📊 Duración Total del Proceso por Ticket")
 
@@ -89,12 +79,10 @@ if ticket_sel != "Todos":
     df_top_duracion = duracion[duracion['id_ticket'] == ticket_sel]
     titulo = f"Duración del Ticket: {ticket_sel}"
 else:
-    # Elegir cuántos tickets mostrar (solo cuando están todos)
     top_n_tickets = st.slider("Mostrar top N tickets con mayor duración", min_value=5, max_value=50, value=10)
     df_top_duracion = duracion.sort_values(by="duracion_proceso_horas", ascending=False).head(top_n_tickets)
     titulo = "Duración Total del Proceso por Ticket"
 
-# Crear gráfico con Plotly
 fig = px.bar(
     df_top_duracion,
     x="id_ticket",
@@ -106,15 +94,9 @@ fig = px.bar(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-
-
-
-
-
 # --- SEMÁFORO POR FASE DEL PROCESO ---
 st.subheader("🚦 Semáforo por Fase del Proceso")
 
-# Filtro por ticket
 if ticket_sel != "Todos":
     df_semaforo_filtrado = duracion[duracion["id_ticket"] == ticket_sel]
     titulo_semaforo = f"Duración por Fase - Ticket {ticket_sel}"
@@ -122,7 +104,6 @@ else:
     df_semaforo_filtrado = duracion.copy()
     titulo_semaforo = "Duración por Fase del Proceso (Todos los Tickets)"
 
-# Derretir columnas para fase
 df_melted = df_semaforo_filtrado.melt(
     id_vars="id_ticket",
     value_vars=["duracion_fase_horas", "duracion_qa_horas", "duracion_post_resolucion_horas"],
@@ -130,14 +111,12 @@ df_melted = df_semaforo_filtrado.melt(
     value_name="duracion"
 )
 
-# Agregar clasificación de semáforo
 df_melted["color"] = pd.cut(
     df_melted["duracion"],
     bins=[-1, 500, 2000, float("inf")],
     labels=["🟢 Bajo", "🟡 Medio", "🔴 Alto"]
 )
 
-# Gráfico
 fig2 = px.bar(
     df_melted,
     x="fase",
@@ -149,12 +128,8 @@ fig2 = px.bar(
 )
 st.plotly_chart(fig2, use_container_width=True)
 
-
-
 # --- GRAFICO SANKEY: Flujo Real de Actividades ---
 st.subheader("🔄 Flujo Real de Actividades (Gráfico Sankey)")
-
-# Ordenar por ticket y hora para reconstruir el flujo real
 
 if ticket_sel != "Todos":
     log_filtrado = log[log["id_ticket"] == ticket_sel]
@@ -162,38 +137,15 @@ else:
     log_filtrado = log
 
 log_ordenado = log_filtrado.sort_values(by=["id_ticket", "inicio_actividad"])
-# Crear pares consecutivos de actividades
 log_ordenado["actividad_siguiente"] = log_ordenado.groupby("id_ticket")["actividad"].shift(-1)
 pares = log_ordenado.dropna(subset=["actividad_siguiente"])
-
-# Contar combinaciones únicas (de → hacia)
 flujo = pares.groupby(["actividad", "actividad_siguiente"]).size().reset_index(name="cantidad")
 
-# Crear nodos únicos e índices
 nodos = list(set(flujo["actividad"].tolist() + flujo["actividad_siguiente"].tolist()))
 etiquetas = nodos
 indices = {k: v for v, k in enumerate(nodos)}
-# Mapear a source y target
 flujo["source"] = flujo["actividad"].map(indices)
 flujo["target"] = flujo["actividad_siguiente"].map(indices)
-
-# Construir gráfico Sankey
-
-fig_sankey = go.Figure(data=[go.Sankey(
-    node=dict(
-        pad=15,
-        thickness=20,
-        line=dict(color="black", width=0.5),
-        label=nodos
-    ),
-    link=dict(
-        source=flujo["source"],
-        target=flujo["target"],
-        value=flujo["cantidad"]
-    ))])
-
-#fig_sankey.update_layout(title_text="🔄 Flujo Real de Actividades (Sankey)", font_size=10)
-st.plotly_chart(fig_sankey, use_container_width=True)
 
 fig_sankey = go.Figure(data=[go.Sankey(
     node=dict(
@@ -201,21 +153,12 @@ fig_sankey = go.Figure(data=[go.Sankey(
         thickness=20,
         line=dict(color="black", width=0.5),
         label=etiquetas,
-        color=colores
+        color="gray"
     ),
     link=dict(
-        source=source,
-        target=target,
-        value=value
+        source=flujo["source"],
+        target=flujo["target"],
+        value=flujo["cantidad"]
     )
 )])
-
-# 👇 Aquí cambias la fuente y tamaño de letra
-fig_sankey.update_layout(
-    title_text="🔀 Flujo Real de Actividades por Ticket (Sankey)",
-    font=dict(
-        family="Arial",  # Fuente legible
-        size=16,         # Tamaño más grande
-        color="black"    # Color oscuro para más contraste
-    )
-)
+st.plotly_chart(fig_sankey, use_container_width=True)
