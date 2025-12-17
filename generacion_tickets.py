@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import random  # ✅ Aseguramos que esté correctamente importado
+import random  
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
@@ -41,17 +41,10 @@ total_tickets = log['id_ticket'].nunique()
 total_actividades = log['actividad'].nunique()
 prom_duracion_real = duracion["duracion_proceso_horas"].mean()
 
-# Conversión a días y meses
-prom_dias = prom_duracion_real / 24
-prom_meses = prom_dias / 30
-
 col1, col2, col3 = st.columns(3)
 col1.metric("🎫 Tickets únicos", total_tickets)
 col2.metric("⚙️ Actividades distintas", total_actividades)
 col3.metric("⏱️ Promedio duración total (horas)", round(prom_duracion_real, 2))
-
-# Mostrar equivalente en días y meses
-col3.markdown(f"👉 Equivale a **{prom_dias:.1f} días** (~{prom_meses:.1f} meses)")
 
 # --- TABLA PRINCIPAL ---
 st.subheader("📋 Log de Eventos por Actividad")
@@ -136,6 +129,8 @@ fig2 = px.bar(
 )
 st.plotly_chart(fig2, use_container_width=True)
 
+
+
 # --- GRAFICO SANKEY: Flujo Real de Actividades ---
 st.subheader("🔄 Flujo Real de Actividades (Gráfico Sankey)")
 
@@ -146,16 +141,8 @@ else:
 
 log_ordenado = log_filtrado.sort_values(by=["id_ticket", "inicio_actividad"])
 log_ordenado["actividad_siguiente"] = log_ordenado.groupby("id_ticket")["actividad"].shift(-1)
-log_ordenado["duracion_horas"] = (log_ordenado["fin_actividad"] - log_ordenado["inicio_actividad"]).dt.total_seconds() / 3600
-
 pares = log_ordenado.dropna(subset=["actividad_siguiente"])
-flujo = pares.groupby(["actividad", "actividad_siguiente"]).agg(
-    cantidad=("id_ticket", "count"),
-    horas_totales=("duracion_horas", "sum")
-).reset_index()
-
-horas_totales_global = flujo["horas_totales"].sum()
-flujo["porcentaje"] = flujo["horas_totales"] / horas_totales_global * 100
+flujo = pares.groupby(["actividad", "actividad_siguiente"]).size().reset_index(name="cantidad")
 
 nodos = list(set(flujo["actividad"].tolist() + flujo["actividad_siguiente"].tolist()))
 etiquetas = nodos
@@ -163,9 +150,19 @@ indices = {k: v for v, k in enumerate(nodos)}
 flujo["source"] = flujo["actividad"].map(indices)
 flujo["target"] = flujo["actividad_siguiente"].map(indices)
 
+# Colores aleatorios por nodo
 colores_nodos = ['hsl({},70%,50%)'.format(random.randint(0, 360)) for _ in etiquetas]
 
-hover_textos = flujo.apply(lambda row: f"{row['actividad']} → {row['actividad_siguiente']}<br>Tickets: {row['cantidad']}<br>Total horas: {row['horas_totales']:.1f}<br>({row['porcentaje']:.1f}%)", axis=1)
+# Calcular porcentaje de cada flujo
+flujo["porcentaje"] = flujo["cantidad"] / flujo["cantidad"].sum() * 100
+
+# Tooltips personalizados
+hover_textos = flujo.apply(
+    lambda row: f"{row['actividad']} → {row['actividad_siguiente']}<br>"
+                f"Cantidad: {row['cantidad']}<br>"
+                f"Porcentaje: {row['porcentaje']:.2f}%",
+    axis=1
+)
 
 fig_sankey = go.Figure(data=[go.Sankey(
     node=dict(
@@ -179,7 +176,9 @@ fig_sankey = go.Figure(data=[go.Sankey(
         source=flujo["source"],
         target=flujo["target"],
         value=flujo["cantidad"],
-        hovertemplate=hover_textos
+        customdata=hover_textos,
+        hovertemplate="%{customdata}<extra></extra>"
     )
 )])
 st.plotly_chart(fig_sankey, use_container_width=True)
+
