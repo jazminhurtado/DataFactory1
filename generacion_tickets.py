@@ -42,7 +42,8 @@ prom_duracion_real = duracion["duracion_proceso_horas"].mean()
 col1, col2, col3 = st.columns(3)
 col1.metric("🎫 Tickets únicos", total_tickets)
 col2.metric("⚙️ Actividades distintas", total_actividades)
-col3.metric("⏱️ Promedio duración total (horas)", round(prom_duracion_real, 2))
+col3.metric("⏱️ Promedio duración total (horas)", int(round(prom_duracion_real, 0)))
+
 
 # --- TABLA PRINCIPAL ---
 st.subheader("📋 Log de Eventos por Actividad")
