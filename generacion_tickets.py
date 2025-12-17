@@ -51,9 +51,7 @@ if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
     st.dataframe(log[log['id_ticket'] == ticket_sel], use_container_width=True)
 
-# --- TABLA DE DURACIONES REALES ---
-#st.subheader("⏳ Duraciones reales por Ticket")
-#st.dataframe(duracion, use_container_width=True)
+
 # --- TABLA DE DURACIONES REALES ---
 st.subheader("⏳ Duraciones reales por Ticket")
 
@@ -66,20 +64,49 @@ else:
 
 
 # --- GRÁFICO DE BARRAS: Duración total del proceso por ticket ---
-st.subheader("📊 Duración Total del Proceso por Ticket")
-top_n_tickets = st.slider("Mostrar top N tickets con mayor duración", min_value=5, max_value=50, value=10)
-df_top_duracion = duracion.sort_values(by="duracion_proceso_horas", ascending=False).head(top_n_tickets)
+#st.subheader("📊 Duración Total del Proceso por Ticket")
+#top_n_tickets = st.slider("Mostrar top N tickets con mayor duración", min_value=5, max_value=50, value=10)
+#df_top_duracion = duracion.sort_values(by="duracion_proceso_horas", ascending=False).head(top_n_tickets)
 
+#fig = px.bar(
+    #df_top_duracion,
+    #x="id_ticket",
+    #y="duracion_proceso_horas",
+    #labels={"id_ticket": "Ticket", "duracion_proceso_horas": "Duración (horas)"},
+    #title="Duración Total del Proceso por Ticket",
+    #color="duracion_proceso_horas",
+    #color_continuous_scale="Blues"
+#)
+#st.plotly_chart(fig, use_container_width=True)
+
+# --- GRÁFICO DE BARRAS: Duración total del proceso por ticket ---
+st.subheader("📊 Duración Total del Proceso por Ticket")
+
+if ticket_sel != "Todos":
+    df_top_duracion = duracion[duracion['id_ticket'] == ticket_sel]
+    titulo = f"Duración del Ticket: {ticket_sel}"
+else:
+    # Elegir cuántos tickets mostrar (solo cuando están todos)
+    top_n_tickets = st.slider("Mostrar top N tickets con mayor duración", min_value=5, max_value=50, value=10)
+    df_top_duracion = duracion.sort_values(by="duracion_proceso_horas", ascending=False).head(top_n_tickets)
+    titulo = "Duración Total del Proceso por Ticket"
+
+# Crear gráfico con Plotly
 fig = px.bar(
     df_top_duracion,
     x="id_ticket",
     y="duracion_proceso_horas",
     labels={"id_ticket": "Ticket", "duracion_proceso_horas": "Duración (horas)"},
-    title="Duración Total del Proceso por Ticket",
+    title=titulo,
     color="duracion_proceso_horas",
     color_continuous_scale="Blues"
 )
 st.plotly_chart(fig, use_container_width=True)
+
+
+
+
+
 
 # --- SEMÁFORO POR FASE ---
 st.subheader("🔦 Semáforo por Fase del Proceso")
