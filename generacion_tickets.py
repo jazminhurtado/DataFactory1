@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import random
+import random  # ✅ Aseguramos que esté correctamente importado
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
@@ -36,7 +36,7 @@ st.title("📊 Análisis de Proceso de Tickets")
 st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
 
 # --- KPIs GENERALES ---
-st.subheader("📏 KPIs Generales")
+st.subheader("🔢 KPIs Generales")
 total_tickets = log['id_ticket'].nunique()
 total_actividades = log['actividad'].nunique()
 prom_duracion_real = duracion["duracion_proceso_horas"].mean()
@@ -58,7 +58,7 @@ top_variantes.columns = ['secuencia', 'cantidad']
 st.dataframe(top_variantes)
 
 # --- FILTRO POR TICKET ---
-st.sidebar.header("🎧 Filtros")
+st.sidebar.header("🎛️ Filtros")
 ticket_sel = st.sidebar.selectbox("Ticket específico", ["Todos"] + list(log['id_ticket'].unique()))
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
@@ -157,12 +157,12 @@ fig_sankey = go.Figure(data=[go.Sankey(
         thickness=20,
         line=dict(color="black", width=0.5),
         label=etiquetas,
-        color= colores_nodos, # Colores para nodos
-        textfont = dict(
-            family = "Arial",
-            size = 14,
-            color = "black"
-       )    
+        color=colores_nodos,
+        textfont=dict(
+            family="Arial",
+            size=14,
+            color="black"
+        )
     ),
     link=dict(
         source=flujo["source"],
