@@ -71,9 +71,7 @@ ticket_sel = st.sidebar.selectbox(
 
 st.subheader("🔁 Variantes del Proceso")
 
-top_n = st.slider("Mostrar top N variantes", 1, 20, 5)
-
-# 1️⃣ Construir secuencia real por ticket
+# 1️⃣ Secuencia por ticket
 secuencia_por_ticket = (
     log.sort_values(by=["id_ticket", "inicio_actividad"])
     .groupby("id_ticket")["actividad"]
@@ -81,20 +79,32 @@ secuencia_por_ticket = (
     .reset_index(name="secuencia")
 )
 
-# 2️⃣ Contar variantes
+# 2️⃣ Tabla de variantes reales
 variantes_reales = (
     secuencia_por_ticket
     .groupby("secuencia")
     .agg(
         cantidad=("id_ticket", "count"),
-        es_ticket=("id_ticket", lambda x: ", ".join(x))
+        tickets=("id_ticket", list)
     )
     .reset_index()
     .sort_values(by="cantidad", ascending=False)
-    .head(top_n)
 )
 
-st.dataframe(variantes_reales, use_container_width=True)
+# 3️⃣ Selectbox para seleccionar variante
+opciones_variantes = variantes_reales["secuencia"].tolist()
+variante_sel = st.selectbox("Selecciona una variante específica", opciones_variantes)
+
+# 4️⃣ Filtrar la tabla para mostrar solo la variante seleccionada
+tabla_filtrada = variantes_reales[variantes_reales["secuencia"] == variante_sel]
+
+# 5️⃣ Mostrar tabla con tickets como string
+tabla_filtrada = tabla_filtrada.copy()
+tabla_filtrada["tickets"] = tabla_filtrada["tickets"].apply(lambda x: ", ".join(x))
+
+st.dataframe(tabla_filtrada, use_container_width=True)
+
+
 
 
 
