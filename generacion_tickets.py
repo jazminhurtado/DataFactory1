@@ -92,6 +92,42 @@ st.dataframe(top_variantes, use_container_width=True)
 if ticket_sel != "Todos" and secuencia_str not in top_variantes["secuencia"].values:
     st.warning("⚠️ La secuencia de este ticket no está entre las top N variantes mostradas.")
 
+# --- NUEVO: FRECUENCIA COMPLETA DE VARIANTES ---
+st.subheader("📈 Distribución de Frecuencia de Variantes del Proceso")
+
+# Agrupar y contar todas las secuencias únicas
+frecuencia_variantes = variantes['secuencia_actividades'].value_counts().reset_index()
+frecuencia_variantes.columns = ['secuencia', 'cantidad']
+
+# Clasificar si es una variante común o rara
+umbral = st.slider("🔎 Umbral para marcar como 'Frecuente'", min_value=1, max_value=10, value=3)
+frecuencia_variantes["tipo"] = frecuencia_variantes["cantidad"].apply(
+    lambda x: "⭐ Frecuente" if x >= umbral else "🔍 Excepcional"
+)
+
+# Mostrar tabla con todas las variantes
+st.dataframe(frecuencia_variantes, use_container_width=True)
+
+# Gráfico de barras horizontales (top 20)
+fig_frecuencia = px.bar(
+    frecuencia_variantes.head(20),
+    x="cantidad",
+    y="secuencia",
+    color="tipo",
+    orientation="h",
+    title="Top 20 Variantes del Proceso por Frecuencia",
+    labels={"cantidad": "Cantidad de Tickets", "secuencia": "Secuencia de Actividades"},
+    height=700
+)
+st.plotly_chart(fig_frecuencia, use_container_width=True)
+
+
+
+
+
+
+
+
 # --- EVENTOS DEL TICKET SELECCIONADO ---
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
