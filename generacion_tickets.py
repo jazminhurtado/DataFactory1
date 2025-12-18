@@ -7,34 +7,6 @@ import random
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
 
-st.markdown(
-    """
-    <style>
-    /* Fondo del sidebar */
-    section[data-testid="stSidebar"] {
-        background-color: #003300; /* verde oscuro */
-    }
-
-    /* Etiquetas de los campos (como "Ticket específico") */
-    section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] .stSelectbox div,
-    section[data-testid="stSidebar"] .st-bb, 
-    section[data-testid="stSidebar"] .st-bc {
-        color: white !important;
-    }
-
-    /* Texto dentro del selectbox */
-    section[data-testid="stSidebar"] select {
-        color: white;
-        background-color: #003300;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
-
 # --- ESTILO PERSONALIZADO PARA SIDEBAR ---
 st.markdown("""
     <style>
