@@ -130,14 +130,14 @@ if ticket_sel != "Todos":
         tiempo_espera = duracion_total - suma_actividades
 
         # --- INFORMACIÓN PRINCIPAL ---
-        st.info(f"🧮 **Suma de actividades:** {suma_actividades} horas")
-        st.info(f"📦 **Duración total del proceso:** {duracion_total} horas")
-        st.info(f"⏱️ **Tiempo en espera/inactividad:** {tiempo_espera} horas")
+        st.info(f" **Suma de actividades:** {suma_actividades} horas")
+        st.info(f" **Duración total del proceso:** {duracion_total} horas")
+        st.info(f" **Tiempo en espera/inactividad:** {tiempo_espera} horas")
 
         # --- PROMEDIO Y MEDIANA (DONDE TÚ QUERÍAS) ---
         col1, col2 = st.columns(2)
-        col1.metric("📊 Promedio de duración por actividad", promedio_actividad)
-        col2.metric("📏 Mediana por actividad", mediana_actividad)
+        col1.metric(" Promedio de duración por actividad", promedio_actividad)
+        col2.metric(" Mediana por actividad", mediana_actividad)
 
     else:
         st.warning("⚠️ No se encontró la duración total del ticket en la tabla de duración.")
