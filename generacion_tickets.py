@@ -105,8 +105,6 @@ tabla_filtrada["tickets"] = tabla_filtrada["tickets"].apply(lambda x: ", ".join(
 st.dataframe(tabla_filtrada, use_container_width=True)
 
 
-
-
 # --- EVENTOS DEL TICKET SELECCIONADO ---
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
@@ -115,26 +113,37 @@ if ticket_sel != "Todos":
     eventos_ticket = log[log['id_ticket'] == ticket_sel].sort_values(by="inicio_actividad")
     st.dataframe(eventos_ticket, use_container_width=True)
 
-    # --- COMPARAR DURACIONES ---
+    # --- CÁLCULOS BASE ---
     total_duracion_actividades = eventos_ticket["duracion_horas"].sum()
     duracion_ticket = duracion[duracion["id_ticket"] == ticket_sel]
 
+    # --- CÁLCULOS POR ACTIVIDAD (ANTES DE USARLOS) ---
+    duraciones_actividad = eventos_ticket["duracion_horas"].dropna()
+    promedio_actividad = int(round(duraciones_actividad.mean(), 0))
+    mediana_actividad = int(round(duraciones_actividad.median(), 0))
+
     if not duracion_ticket.empty:
         total_duracion_proceso = duracion_ticket["duracion_proceso_horas"].values[0]
-        
+
         suma_actividades = int(round(total_duracion_actividades, 0))
         duracion_total = int(round(total_duracion_proceso, 0))
         tiempo_espera = duracion_total - suma_actividades
-        
-        st.info(f" **Suma de actividades:** {suma_actividades} horas")
-        st.info(f" **Duración total del proceso:** {duracion_total} horas")
-        st.info(f" **Tiempo en espera/inactividad:** {tiempo_espera} horas") 
+
+        # --- INFORMACIÓN PRINCIPAL ---
+        st.info(f"🧮 **Suma de actividades:** {suma_actividades} horas")
+        st.info(f"📦 **Duración total del proceso:** {duracion_total} horas")
+        st.info(f"⏱️ **Tiempo en espera/inactividad:** {tiempo_espera} horas")
+
+        # --- PROMEDIO Y MEDIANA (DONDE TÚ QUERÍAS) ---
         col1, col2 = st.columns(2)
         col1.metric("📊 Promedio de duración por actividad", promedio_actividad)
         col2.metric("📏 Mediana por actividad", mediana_actividad)
-      
+
     else:
         st.warning("⚠️ No se encontró la duración total del ticket en la tabla de duración.")
+
+
+
 
 
 
