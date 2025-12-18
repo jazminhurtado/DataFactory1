@@ -131,9 +131,11 @@ if ticket_sel != "Todos":
     duracion_ticket = duracion[duracion["id_ticket"] == ticket_sel]
     if not duracion_ticket.empty:
         total_duracion_proceso = duracion_ticket["duracion_proceso_horas"].values[0]
-
-        st.info(f"🧮 **Suma de duraciones por actividad:** {round(total_duracion_actividades, 2)} horas")
-        st.info(f"📦 **Duración total del proceso:** {round(total_duracion_proceso, 2)} horas")
+        suma_actividades = int(round(total_duracion_actividades, 0))
+        duracion_total = int(round(total_duracion_proceso, 0))
+        st.info(f"🧮 **Suma de actividades:** {suma_actividades} horas")
+        st.info(f"📦 **Duración total del proceso:** {duracion_total} horas")
+        
     else:
         st.warning("⚠️ No se encontró la duración total del ticket en la tabla de duración.")
 
