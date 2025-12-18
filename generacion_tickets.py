@@ -10,7 +10,7 @@ st.set_page_config(page_title="Minería de Procesos", layout="wide")
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
-        background-color: #003300;  /* Fondo oscuro o negro */
+        background-color: #3f1d3a;  /* Fondo oscuro o negro */
     }
 
     [data-testid="stSidebar"] * {
