@@ -114,7 +114,7 @@ st.dataframe(tabla_filtrada, use_container_width=True)
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
     st.dataframe(
-        log[log['id_ticket'] == ticket_sel],
+        log[log['id_ticket'] == ticket_sel].sort_values(by="inicio_actividad"),
         use_container_width=True
     )
 
