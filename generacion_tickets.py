@@ -139,7 +139,7 @@ if ticket_sel != "Todos":
 
 
 # --- DURACIONES ---
-st.subheader("⏳ Duraciones reales por Ticket")
+st.subheader(" Duraciones reales por Ticket")
 if ticket_sel != "Todos":
     st.dataframe(
         duracion[duracion['id_ticket'] == ticket_sel],
