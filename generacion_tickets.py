@@ -165,18 +165,7 @@ if ticket_sel != "Todos":
         col1.metric("📊 Promedio de duración por actividad", promedio_actividad)
         col2.metric("📏 Mediana por actividad", mediana_actividad)
 
-        # 2️⃣ Outliers internos (actividades del ticket)
-        #q1_a = duraciones_actividad.quantile(0.25)
-        #q3_a = duraciones_actividad.quantile(0.75)
-        #iqr_a = q3_a - q1_a
-        #limite_outlier = q3_a + 1.5 * iqr_a
-
-        #outliers_act = actividades_ticket[actividades_ticket["duracion_horas"] > limite_outlier]
-
-        st.markdown(f"🔍 Se detectaron **{len(outliers_act)} actividades** como _outliers_ (>{int(limite_outlier)} horas)")
-        st.dataframe(outliers_act, use_container_width=True)
-
-        # 3️⃣ Boxplot actividades del ticket
+        # 2️⃣ Gráfico boxplot
         st.markdown("### 📦 Boxplot de duración por actividad")
         fig_box_actividad = px.box(
             actividades_ticket,
@@ -186,7 +175,7 @@ if ticket_sel != "Todos":
         )
         st.plotly_chart(fig_box_actividad, use_container_width=True)
 
-        # 4️⃣ Histograma por ticket
+        # 3️⃣ Histograma
         st.markdown("### 📊 Histograma de duración de actividades")
         fig_hist_actividad = px.histogram(
             actividades_ticket,
@@ -196,6 +185,7 @@ if ticket_sel != "Todos":
             labels={"duracion_horas": "Duración (horas)"}
         )
         st.plotly_chart(fig_hist_actividad, use_container_width=True)
+
 
 
 
