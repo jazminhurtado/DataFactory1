@@ -89,14 +89,21 @@ st.dataframe(log, use_container_width=True)
 
 # --- FILTRO ---
 st.sidebar.header("🎛️ Filtros")
-# Cambiar el color del texto del header de la barra lateral a blanco
+# Cambiar todo el texto del sidebar a color blanco
 st.markdown("""
     <style>
-    section[data-testid="stSidebar"] h1 {
+    /* Fondo oscuro */
+    section[data-testid="stSidebar"] {
+        background-color: #2d0033;
+    }
+
+    /* Texto blanco */
+    section[data-testid="stSidebar"] * {
         color: white !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 ticket_sel = st.sidebar.selectbox(
