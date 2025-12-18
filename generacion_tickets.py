@@ -68,41 +68,37 @@ ticket_sel = st.sidebar.selectbox(
 # =========================================================
 # 🔁 VARIANTES DEL PROCESO (CON TICKETS REALES)
 # =========================================================
+
 st.subheader("🔁 Variantes del Proceso")
 
 top_n = st.slider("Mostrar top N variantes", 1, 20, 5)
 
-top_variantes = (
-    variantes['secuencia_actividades']
-    .value_counts()
-    .head(top_n)
-    .reset_index()
-)
-
-top_variantes.columns = ['secuencia', 'cantidad']
-
-# --- CONSTRUIR SECUENCIA REAL POR TICKET ---
+# 1️⃣ Construir secuencia real por ticket
 secuencia_por_ticket = (
     log.sort_values(by=["id_ticket", "inicio_actividad"])
     .groupby("id_ticket")["actividad"]
     .apply(lambda x: " ➔ ".join(x))
-    .reset_index()
+    .reset_index(name="secuencia")
 )
 
-# --- MAPA: SECUENCIA → LISTA DE TICKETS ---
-mapa_secuencia_tickets = (
+# 2️⃣ Contar variantes
+variantes_reales = (
     secuencia_por_ticket
-    .groupby("actividad")["id_ticket"]
-    .apply(list)
-    .to_dict()
+    .groupby("secuencia")
+    .agg(
+        cantidad=("id_ticket", "count"),
+        es_ticket=("id_ticket", lambda x: ", ".join(x))
+    )
+    .reset_index()
+    .sort_values(by="cantidad", ascending=False)
+    .head(top_n)
 )
 
-# --- ASIGNAR TICKETS A CADA VARIANTE ---
-top_variantes["es_ticket"] = top_variantes["secuencia"].apply(
-    lambda s: ", ".join(mapa_secuencia_tickets.get(s, []))
-)
+st.dataframe(variantes_reales, use_container_width=True)
 
-st.dataframe(top_variantes, use_container_width=True)
+
+
+
 
 # --- EVENTOS DEL TICKET SELECCIONADO ---
 if ticket_sel != "Todos":
