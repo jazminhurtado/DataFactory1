@@ -148,46 +148,55 @@ if ticket_sel != "Todos":
 else:
     st.dataframe(duracion, use_container_width=True)
 
-# --- ANÁLISIS DE DISTRIBUCIÓN DE DURACIÓN TOTAL DE TICKETS ---
-st.subheader("📈 Análisis de Duración Total de Tickets")
+# --- ANÁLISIS DE ACTIVIDADES POR TICKET ---
+if ticket_sel != "Todos":
+    st.subheader("📈 Análisis de Actividades del Ticket Seleccionado")
 
-# Asegurar que usamos solo valores válidos
-duraciones_validas = duracion["duracion_proceso_horas"].dropna()
+    actividades_ticket = log[log["id_ticket"] == ticket_sel]
 
-# --- 1. PROMEDIO Y MEDIANA ---
-promedio = int(round(duraciones_validas.mean(), 0))
-mediana = int(round(duraciones_validas.median(), 0))
+    if not actividades_ticket.empty:
+        duraciones_actividad = actividades_ticket["duracion_horas"].dropna()
 
-col1, col2 = st.columns(2)
-col1.metric("📊 Promedio de duración (horas)", promedio)
-col2.metric("📏 Mediana de duración (horas)", mediana)
+        # 1️⃣ Promedio y Mediana por ticket
+        promedio_actividad = int(round(duraciones_actividad.mean(), 0))
+        mediana_actividad = int(round(duraciones_actividad.median(), 0))
 
-# --- 2. DETECTAR OUTLIERS ---
-q1 = duraciones_validas.quantile(0.25)
-q3 = duraciones_validas.quantile(0.75)
-iqr = q3 - q1
-limite_superior = q3 + 1.5 * iqr
+        col1, col2 = st.columns(2)
+        col1.metric("📊 Promedio de duración por actividad", promedio_actividad)
+        col2.metric("📏 Mediana por actividad", mediana_actividad)
 
-outliers = duracion[duracion["duracion_proceso_horas"] > limite_superior]
+        # 2️⃣ Outliers internos (actividades del ticket)
+        q1_a = duraciones_actividad.quantile(0.25)
+        q3_a = duraciones_actividad.quantile(0.75)
+        iqr_a = q3_a - q1_a
+        limite_outlier = q3_a + 1.5 * iqr_a
 
-st.markdown(f"🔍 Se detectaron **{len(outliers)} tickets** como posibles _outliers_ (por encima de {int(limite_superior)} horas).")
-st.dataframe(outliers, use_container_width=True)
+        outliers_act = actividades_ticket[actividades_ticket["duracion_horas"] > limite_outlier]
 
-# --- 3. GRÁFICO BOXPLOT ---
-st.markdown("### 📦 Distribución de duración total (Boxplot)")
-fig_box = px.box(duracion, y="duracion_proceso_horas", points="all", title="Distribución de Duración Total del Proceso")
-st.plotly_chart(fig_box, use_container_width=True)
+        st.markdown(f"🔍 Se detectaron **{len(outliers_act)} actividades** como _outliers_ (>{int(limite_outlier)} horas)")
+        st.dataframe(outliers_act, use_container_width=True)
 
-# --- 4. GRÁFICO HISTOGRAMA ---
-st.markdown("### 📊 Histograma de duración total")
-fig_hist = px.histogram(
-    duracion,
-    x="duracion_proceso_horas",
-    nbins=30,
-    title="Histograma de Duración Total del Proceso",
-    labels={"duracion_proceso_horas": "Duración (horas)"}
-)
-st.plotly_chart(fig_hist, use_container_width=True)
+        # 3️⃣ Boxplot actividades del ticket
+        st.markdown("### 📦 Boxplot de duración por actividad")
+        fig_box_actividad = px.box(
+            actividades_ticket,
+            y="duracion_horas",
+            points="all",
+            title=f"Distribución de Duración por Actividad - {ticket_sel}"
+        )
+        st.plotly_chart(fig_box_actividad, use_container_width=True)
+
+        # 4️⃣ Histograma por ticket
+        st.markdown("### 📊 Histograma de duración de actividades")
+        fig_hist_actividad = px.histogram(
+            actividades_ticket,
+            x="duracion_horas",
+            nbins=10,
+            title=f"Histograma de Duración de Actividades - {ticket_sel}",
+            labels={"duracion_horas": "Duración (horas)"}
+        )
+        st.plotly_chart(fig_hist_actividad, use_container_width=True)
+
 
 
 
