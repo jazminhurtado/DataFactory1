@@ -10,14 +10,28 @@ st.set_page_config(page_title="Minería de Procesos", layout="wide")
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
-        background-color: #003300;  /* Cambia esto por el color que desees */
-        color: white;
+        background-color: #003300;  /* Fondo oscuro o negro */
     }
+
     [data-testid="stSidebar"] * {
         color: white;
     }
+
+    /* Selectbox - texto visible */
+    section[data-testid="stSidebar"] .stSelectbox div[role="combobox"] {
+        background-color: #ffffff;  /* fondo del input */
+        color: black;               /* texto dentro del input */
+        border-radius: 5px;
+        padding: 5px;
+    }
+
+    /* Texto del desplegable del selectbox */
+    section[data-testid="stSidebar"] .stSelectbox div[role="listbox"] {
+        color: black;
+    }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 
