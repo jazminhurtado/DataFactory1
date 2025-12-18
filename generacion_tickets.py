@@ -107,16 +107,6 @@ st.dataframe(tabla_filtrada, use_container_width=True)
 
 
 
-
-
-
-# --- EVENTOS DEL TICKET SELECCIONADO ---
-#if ticket_sel != "Todos":
-    #st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
-    #st.dataframe(
-        #log[log['id_ticket'] == ticket_sel].sort_values(by="inicio_actividad"),
-        #use_container_width=True
-    #)
 # --- EVENTOS DEL TICKET SELECCIONADO ---
 if ticket_sel != "Todos":
     st.subheader(f"🔎 Eventos del Ticket: {ticket_sel}")
@@ -127,15 +117,19 @@ if ticket_sel != "Todos":
 
     # --- COMPARAR DURACIONES ---
     total_duracion_actividades = eventos_ticket["duracion_horas"].sum()
-
     duracion_ticket = duracion[duracion["id_ticket"] == ticket_sel]
+
     if not duracion_ticket.empty:
         total_duracion_proceso = duracion_ticket["duracion_proceso_horas"].values[0]
+        
         suma_actividades = int(round(total_duracion_actividades, 0))
         duracion_total = int(round(total_duracion_proceso, 0))
+        tiempo_espera = duracion_total - suma_actividades
+        
         st.info(f"🧮 **Suma de actividades:** {suma_actividades} horas")
         st.info(f"📦 **Duración total del proceso:** {duracion_total} horas")
-        
+        st.info(f"⏱️ **Tiempo en espera/inactividad:** {tiempo_espera} horas")     
+      
     else:
         st.warning("⚠️ No se encontró la duración total del ticket en la tabla de duración.")
 
