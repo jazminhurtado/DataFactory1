@@ -6,37 +6,6 @@ import random
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
-st.markdown("""
-    <style>
-    /* Fondo oscuro del sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #2b0033;
-    }
-
-    /* Texto blanco del título "Filtros" */
-    [data-testid="stSidebar"] h1, 
-    [data-testid="stSidebar"] h2, 
-    [data-testid="stSidebar"] h3, 
-    [data-testid="stSidebar"] h4, 
-    [data-testid="stSidebar"] h5, 
-    [data-testid="stSidebar"] h6, 
-    [data-testid="stSidebar"] label {
-        color: white !important;
-    }
-
-    /* Texto blanco dentro del selectbox */
-    section[data-testid="stSidebar"] .stSelectbox div[role="combobox"] span {
-        color: black !important; /* texto desplegado */
-    }
-
-    /* Texto seleccionado dentro del input del selectbox */
-    section[data-testid="stSidebar"] .stSelectbox div[role="combobox"] > div:first-child {
-        color: black !important;
-    }
-
-    </style>
-""", unsafe_allow_html=True)
-
 
 # --- ESTILO PERSONALIZADO PARA SIDEBAR ---
 st.markdown("""
@@ -120,21 +89,6 @@ st.dataframe(log, use_container_width=True)
 
 # --- FILTRO ---
 st.sidebar.header("🎛️ Filtros")
-# Cambiar todo el texto del sidebar a color blanco
-st.markdown("""
-    <style>
-    /* Fondo oscuro */
-    section[data-testid="stSidebar"] {
-        background-color: #2d0033;
-    }
-
-    /* Texto blanco */
-    section[data-testid="stSidebar"] * {
-        color: white !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 
 
 ticket_sel = st.sidebar.selectbox(
