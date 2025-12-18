@@ -166,12 +166,12 @@ if ticket_sel != "Todos":
         col2.metric("📏 Mediana por actividad", mediana_actividad)
 
         # 2️⃣ Outliers internos (actividades del ticket)
-        q1_a = duraciones_actividad.quantile(0.25)
-        q3_a = duraciones_actividad.quantile(0.75)
-        iqr_a = q3_a - q1_a
-        limite_outlier = q3_a + 1.5 * iqr_a
+        #q1_a = duraciones_actividad.quantile(0.25)
+        #q3_a = duraciones_actividad.quantile(0.75)
+        #iqr_a = q3_a - q1_a
+        #limite_outlier = q3_a + 1.5 * iqr_a
 
-        outliers_act = actividades_ticket[actividades_ticket["duracion_horas"] > limite_outlier]
+        #outliers_act = actividades_ticket[actividades_ticket["duracion_horas"] > limite_outlier]
 
         st.markdown(f"🔍 Se detectaron **{len(outliers_act)} actividades** como _outliers_ (>{int(limite_outlier)} horas)")
         st.dataframe(outliers_act, use_container_width=True)
