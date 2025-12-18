@@ -40,11 +40,11 @@ def clasificar_ticket(duracion):
 duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_ticket)
 
 # --- ENCABEZADO ---
-st.title("📊 Análisis de Proceso de Tickets")
+st.title("📊 Análisis del Proceso Generación de Tickets")
 st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
 
 # --- KPIs ---
-st.subheader("🔢 KPIs Generales")
+#st.subheader("🔢 KPIs Generales")
 col1, col2, col3 = st.columns(3)
 
 col1.metric("🎫 Tickets únicos", log['id_ticket'].nunique())
