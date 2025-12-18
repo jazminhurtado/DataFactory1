@@ -41,7 +41,7 @@ duracion["nivel_alerta"] = duracion["duracion_proceso_horas"].apply(clasificar_t
 
 # --- ENCABEZADO ---
 st.title("📊 Análisis del Proceso Generación de Tickets")
-st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
+#st.markdown("Visualización del flujo real de requerimientos según registros de eventos.")
 
 # --- KPIs ---
 #st.subheader("🔢 KPIs Generales")
