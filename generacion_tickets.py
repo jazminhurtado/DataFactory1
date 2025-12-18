@@ -6,6 +6,20 @@ import random
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
+# --- ESTILO PERSONALIZADO PARA SIDEBAR ---
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #111111;  /* Cambia esto por el color que desees */
+        color: white;
+    }
+    [data-testid="stSidebar"] * {
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 
 # --- CARGA DE DATOS ---
 @st.cache_data
