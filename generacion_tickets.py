@@ -126,9 +126,9 @@ if ticket_sel != "Todos":
         duracion_total = int(round(total_duracion_proceso, 0))
         tiempo_espera = duracion_total - suma_actividades
         
-        st.info(f"🧮 **Suma de actividades:** {suma_actividades} horas")
-        st.info(f"📦 **Duración total del proceso:** {duracion_total} horas")
-        st.info(f"⏱️ **Tiempo en espera/inactividad:** {tiempo_espera} horas")     
+        st.info(f" **Suma de actividades:** {suma_actividades} horas")
+        st.info(f" **Duración total del proceso:** {duracion_total} horas")
+        st.info(f" **Tiempo en espera/inactividad:** {tiempo_espera} horas")     
       
     else:
         st.warning("⚠️ No se encontró la duración total del ticket en la tabla de duración.")
