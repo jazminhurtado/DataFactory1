@@ -128,7 +128,10 @@ if ticket_sel != "Todos":
         
         st.info(f" **Suma de actividades:** {suma_actividades} horas")
         st.info(f" **Duración total del proceso:** {duracion_total} horas")
-        st.info(f" **Tiempo en espera/inactividad:** {tiempo_espera} horas")     
+        st.info(f" **Tiempo en espera/inactividad:** {tiempo_espera} horas") 
+        col1, col2 = st.columns(2)
+        col1.metric("📊 Promedio de duración por actividad", promedio_actividad)
+        col2.metric("📏 Mediana por actividad", mediana_actividad)
       
     else:
         st.warning("⚠️ No se encontró la duración total del ticket en la tabla de duración.")
@@ -161,9 +164,9 @@ if ticket_sel != "Todos":
         promedio_actividad = int(round(duraciones_actividad.mean(), 0))
         mediana_actividad = int(round(duraciones_actividad.median(), 0))
 
-        col1, col2 = st.columns(2)
-        col1.metric("📊 Promedio de duración por actividad", promedio_actividad)
-        col2.metric("📏 Mediana por actividad", mediana_actividad)
+        #col1, col2 = st.columns(2)
+        #col1.metric("📊 Promedio de duración por actividad", promedio_actividad)
+        #col2.metric("📏 Mediana por actividad", mediana_actividad)
 
         # 2️⃣ Gráfico boxplot
         st.markdown("### 📦 Boxplot de duración por actividad")
