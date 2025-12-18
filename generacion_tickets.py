@@ -150,7 +150,7 @@ else:
 
 # --- ANÁLISIS DE ACTIVIDADES POR TICKET ---
 if ticket_sel != "Todos":
-    st.subheader("📈 Análisis de Actividades del Ticket Seleccionado")
+    st.subheader("Análisis de Actividades del Ticket Seleccionado")
 
     actividades_ticket = log[log["id_ticket"] == ticket_sel]
 
