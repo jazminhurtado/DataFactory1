@@ -148,6 +148,52 @@ if ticket_sel != "Todos":
 else:
     st.dataframe(duracion, use_container_width=True)
 
+# --- ANÁLISIS DE DISTRIBUCIÓN DE DURACIÓN TOTAL DE TICKETS ---
+st.subheader("📈 Análisis de Duración Total de Tickets")
+
+# Asegurar que usamos solo valores válidos
+duraciones_validas = duracion["duracion_proceso_horas"].dropna()
+
+# --- 1. PROMEDIO Y MEDIANA ---
+promedio = int(round(duraciones_validas.mean(), 0))
+mediana = int(round(duraciones_validas.median(), 0))
+
+col1, col2 = st.columns(2)
+col1.metric("📊 Promedio de duración (horas)", promedio)
+col2.metric("📏 Mediana de duración (horas)", mediana)
+
+# --- 2. DETECTAR OUTLIERS ---
+q1 = duraciones_validas.quantile(0.25)
+q3 = duraciones_validas.quantile(0.75)
+iqr = q3 - q1
+limite_superior = q3 + 1.5 * iqr
+
+outliers = duracion[duracion["duracion_proceso_horas"] > limite_superior]
+
+st.markdown(f"🔍 Se detectaron **{len(outliers)} tickets** como posibles _outliers_ (por encima de {int(limite_superior)} horas).")
+st.dataframe(outliers, use_container_width=True)
+
+# --- 3. GRÁFICO BOXPLOT ---
+st.markdown("### 📦 Distribución de duración total (Boxplot)")
+fig_box = px.box(duracion, y="duracion_proceso_horas", points="all", title="Distribución de Duración Total del Proceso")
+st.plotly_chart(fig_box, use_container_width=True)
+
+# --- 4. GRÁFICO HISTOGRAMA ---
+st.markdown("### 📊 Histograma de duración total")
+fig_hist = px.histogram(
+    duracion,
+    x="duracion_proceso_horas",
+    nbins=30,
+    title="Histograma de Duración Total del Proceso",
+    labels={"duracion_proceso_horas": "Duración (horas)"}
+)
+st.plotly_chart(fig_hist, use_container_width=True)
+
+
+
+
+
+
 # --- BARRAS DURACIÓN ---
 st.subheader("📊 Duración Total del Proceso por Ticket")
 
