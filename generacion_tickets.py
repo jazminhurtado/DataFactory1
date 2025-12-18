@@ -81,9 +81,28 @@ if ticket_sel != "Todos":
         .tolist()
     )
     secuencia_str = " ➔ ".join(secuencia_ticket)
-    top_variantes["es_ticket"] = top_variantes["secuencia"].apply(
-        lambda x: "🎯 Ticket seleccionado" if x == secuencia_str else ""
-    )
+    # Crear un diccionario: secuencia → lista de tickets que la siguen
+mapa_secuencia_tickets = (
+    log.groupby("id_ticket")["actividad"]
+    .apply(lambda x: " ➔ ".join(x.sort_values()))
+    .reset_index()
+    .groupby("actividad")["id_ticket"]
+    .apply(list)
+    .to_dict()
+)
+
+# Asignar los tickets correspondientes a cada variante
+top_variantes["es_ticket"] = top_variantes["secuencia"].apply(
+    lambda x: ", ".join(mapa_secuencia_tickets.get(x, []))
+)
+
+    #top_variantes["es_ticket"] = top_variantes["secuencia"].apply(
+        #lambda x: "🎯 Ticket seleccionado" if x == secuencia_str else ""
+    #)
+
+
+
+
 else:
     top_variantes["es_ticket"] = ""
 
