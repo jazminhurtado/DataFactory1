@@ -6,6 +6,37 @@ import random
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Minería de Procesos", layout="wide")
+st.markdown("""
+    <style>
+    /* Fondo oscuro del sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #2b0033;
+    }
+
+    /* Texto blanco del título "Filtros" */
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3, 
+    [data-testid="stSidebar"] h4, 
+    [data-testid="stSidebar"] h5, 
+    [data-testid="stSidebar"] h6, 
+    [data-testid="stSidebar"] label {
+        color: white !important;
+    }
+
+    /* Texto blanco dentro del selectbox */
+    section[data-testid="stSidebar"] .stSelectbox div[role="combobox"] span {
+        color: black !important; /* texto desplegado */
+    }
+
+    /* Texto seleccionado dentro del input del selectbox */
+    section[data-testid="stSidebar"] .stSelectbox div[role="combobox"] > div:first-child {
+        color: black !important;
+    }
+
+    </style>
+""", unsafe_allow_html=True)
+
 
 # --- ESTILO PERSONALIZADO PARA SIDEBAR ---
 st.markdown("""
